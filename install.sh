@@ -1,7 +1,8 @@
 set -e
 
 echo remove existing cred providers
-rm -Rf $HOME/.nuget/plugins/CredentialProvider*
+rm -Rf $HOME/.nuget/plugins/netcore/CredentialProvider*
+rm -Rf $HOME/.nuget/plugins/netfx/CredentialProvider*
 
 echo install linux side
 dotnet build
