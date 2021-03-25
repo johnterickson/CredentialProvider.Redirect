@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Protocol.Plugins;
 
-namespace CredentialProvider.WSL2
+namespace CredentialProvider.Redirect
 {
     class Program
     {
@@ -18,7 +18,7 @@ namespace CredentialProvider.WSL2
 
         static Action<string> MakeLogger()
         {
-            string logPath = Environment.GetEnvironmentVariable("NUGET_WSL_LOG_PATH");
+            string logPath = Environment.GetEnvironmentVariable("NUGET_CREDENTIALPROVIDER_REDIRECT_LOG_PATH");
             var logFile = logPath == null ? null : new StreamWriter(logPath) { AutoFlush = true };
             return (line) =>
             {
@@ -28,7 +28,7 @@ namespace CredentialProvider.WSL2
 
         static string GetActualCredProviderPath()
         {
-            string windowsCredProviderPath = Environment.GetEnvironmentVariable("NUGET_WSL_REDIRECT_TO_EXEC");
+            string windowsCredProviderPath = Environment.GetEnvironmentVariable("NUGET_CREDENTIALPROVIDER_REDIRECT_TARGET");
             if (windowsCredProviderPath == null)
             {
                 var getUserProfile = Process.Start(new ProcessStartInfo("cmd.exe", "/c echo %USERPROFILE%")
@@ -89,27 +89,27 @@ namespace CredentialProvider.WSL2
 
             log($"Starting `{credProviderProcess.StartInfo.FileName}` `{credProviderProcess.StartInfo.Arguments}'");
 
-            Action<string> winToBridge = (line) => log($"[WIN -> BRIDGE]       {line}");
+            Action<string> winToBridge = (line) => log($"[TARGET -> BRIDGE]       {line}");
 
             Action<string> bridgeToWin = (line) =>
             {
-                log($"[BRIDGE -> WIN] START {line}");
+                log($"[BRIDGE -> TARGET] START {line}");
                 credProviderProcess.StandardInput.Write(line);
                 credProviderProcess.StandardInput.Write("\r");
                 credProviderProcess.StandardInput.Write("\n");
                 credProviderProcess.StandardInput.Flush();
-                log($"[BRIDGE -> WIN] DONE  {line}");
+                log($"[BRIDGE -> TARGET] DONE  {line}");
             };
 
-            Action<string> wslToBridge = (line) => log($"[WSL -> BRIDGE]       {line}");
+            Action<string> sourceToBridge = (line) => log($"[SOURCE -> BRIDGE]       {line}");
 
-            Action<string> bridgeToWsl = (line) =>
+            Action<string> bridgeToTarget = (line) =>
             {
-                log($"[BRIDGE -> WSL] START {line}");
+                log($"[BRIDGE -> SOURCE] START {line}");
                 Console.Out.Write(line);
                 Console.Out.Write('\n');
                 Console.Out.Flush();
-                log($"[BRIDGE -> WSL] DONE  {line}");
+                log($"[BRIDGE -> SOURCE] DONE  {line}");
             };
 
             credProviderProcess.OutputDataReceived += (_sender, e) =>
@@ -117,14 +117,14 @@ namespace CredentialProvider.WSL2
                 string line = e.Data;
                 if (line == null) return;
                 winToBridge(line);
-                bridgeToWsl(line);
+                bridgeToTarget(line);
             };
 
             credProviderProcess.ErrorDataReceived += (_sender, e) =>
             {
                 string line = e.Data;
                 if (line == null) return;
-                log($"[WIN STDERR] {line}");
+                log($"[TARGET STDERR] {line}");
             };
 
             credProviderProcess.Exited += (_sender, e) =>
@@ -145,14 +145,14 @@ namespace CredentialProvider.WSL2
                     string line;
                     while (null != (line = Console.ReadLine()))
                     {
-                        wslToBridge(line);
+                        sourceToBridge(line);
                         bridgeToWin(line);
                     }
 
-                    log($"WSL -> Bridge closed.");
+                    log($"SOURCE -> Bridge closed.");
 
                     credProviderProcess.StandardInput.Close();
-                    log($"Bridge -> WIN closed.");
+                    log($"Bridge -> TARGET closed.");
                 });
 
                 reader.Start();

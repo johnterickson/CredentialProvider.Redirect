@@ -9,12 +9,12 @@ The aim of this project is to do the same for `dotnet`'s `nuget` operations by c
 
 Ideally the flow would be:
 ```
-dotnet restore in WSL2 <-> CredentialProvider.WSL2 in WSL2 <-> netfx/netcore CredentialProvider.Microsoft in Windows
+dotnet restore in WSL2 <-> CredentialProvider.Redirect in WSL2 <-> netfx/netcore CredentialProvider.Microsoft in Windows
 ```
 
 However, I'm having trouble getting the `stdin`/`stdout` flow working right between Windows and WSL2.   For now, I'm only able to get it to work as:
 ```
-dotnet restore in WSL2 <-> CredentialProvider.WSL2 in WSL2 <-> CredentialProvider.WSL2 in Windows <-> netfx/netcore CredentialProvider.Microsoft in Windows
+dotnet restore in WSL2 <-> CredentialProvider.Redirect in WSL2 <-> CredentialProvider.Redirect in Windows <-> netfx/netcore CredentialProvider.Microsoft in Windows
 ```
 
 Until that is fixed, you have to do some extra steps:
