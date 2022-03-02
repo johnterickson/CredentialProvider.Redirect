@@ -22,7 +22,7 @@ Until that is fixed, you have to do some extra steps:
 Windows:
 ```
 echo Make sure you have the latest cred providers
-echo iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | powershell -Command -
+iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx" | powershell -Command -
 ```
 
 WSL2:
