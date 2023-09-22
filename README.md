@@ -1,9 +1,6 @@
 Tested in Ubuntu 18.04 WSL2
 
 If you didn't know: you can use your Windows enivornment to provide auth to `git` inside of WSL by configuring the `git` to shell out to the Windows credential provider: (see https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-git)
-```
-credential.helper=/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe
-```
 
 The aim of this project is to do the same for `dotnet`'s `nuget` operations by creating a credential provider that runs inside of WSL and re-routes to the Windows credential provider.
 
