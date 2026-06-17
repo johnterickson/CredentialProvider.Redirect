@@ -50,7 +50,18 @@ class Program
     
     static string GetWindowsEnvVar(string varName)
     {
-        (int exitCode, string value) = GetOutputLine("cmd.exe", $"/c echo %{varName}%");
+        // In WSL, cmd.exe is at /mnt/c/Windows/system32/cmd.exe
+        string cmd = "cmd.exe";
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // Try WSL path first
+            string wslPath = "/mnt/c/Windows/system32/cmd.exe";
+            if (File.Exists(wslPath))
+            {
+                cmd = wslPath;
+            }
+        }
+        (int exitCode, string value) = GetOutputLine(cmd, $"/c echo %{varName}%");
         if (exitCode != 0)
         {
             Environment.Exit(exitCode);
